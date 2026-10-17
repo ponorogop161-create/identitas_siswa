@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Identitas Siswa Interaktif</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #311042 100%);
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --accent-purple: #a855f7;
+            --accent-indigo: #6366f1;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+        }
+        
+        /* Glassmorphism Card Styling */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.35);
+            outline: none;
+        }
+
+        /* Ambient Glow Background Orbs */
+        .glow-orb-1 {
+            position: fixed;
+            top: 5%;
+            left: 10%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(168,85,247,0.3) 0%, rgba(0,0,0,0) 70%);
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glow-orb-2 {
+            position: fixed;
+            bottom: 5%;
+            right: 10%;
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, rgba(0,0,0,0) 70%);
+            filter: blur(70px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* Accordion transition */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease-in-out, opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+
+        .accordion-content.active {
+            opacity: 1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.7);
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col justify-between relative overflow-x-hidden min-h-screen">
+
+    <!-- Glowing Background Effects -->
+    <div class="glow-orb-1"></div>
+    <div class="glow-orb-2"></div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold uppercase tracking-widest mb-3 shadow-sm">
+                <i class="fa-solid fa-code"></i> Pemrograman Web - Event Handling
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-purple-200 to-indigo-300 bg-clip-text text-transparent mb-3">
+                Formulir Identitas Siswa
+            </h1>
+            <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+                Aplikasi interaktif client-side dengan sanitasi keamanan XSS, validasi instant, dan kartu pelajar digital.
+            </p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-slate-900/60 p-1.5 rounded-2xl border border-white/10 flex gap-2 backdrop-blur-md">
+                <button id="tab-form-btn" onclick="switchTab('form')" class="px-6 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 flex items-center gap-2">
+                    <i class="fa-solid fa-id-card"></i> Formulir Utama
+                </button>
+                <button id="tab-eval-btn" onclick="switchTab('eval')" class="px-6 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap"></i> Pertanyaan Evaluasi
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 1: FORMULIR UTAMA & LIVE PREVIEW -->
+        <div id="tab-form" class="transition-all duration-500">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Input Form Panel -->
+                <div class="lg:col-span-7 glass-card rounded-3xl p-6 sm:p-8">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-white">Input Data Siswa</h2>
+                                <p class="text-xs text-slate-400">Lengkapi formulir di bawah dengan data valid</p>
+                            </div>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Client-Side JS
+                        </span>
+                    </div>
+
+                    <!-- Client-side Form -->
+                    <form id="studentForm" onsubmit="handleFormSubmit(event)" novalidate class="space-y-4">
+                        
+                        <!-- Input Nama -->
+                        <div>
+                            <label for="nama" class="block text-sm font-medium text-slate-300 mb-1.5 flex items-center gap-2">
+                                <i class="fa-regular fa-user text-purple-400"></i> Nama Lengkap <span class="text-rose-400">*</span>
+                            </label>
+                            <input type="text" id="nama" name="nama" placeholder="Contoh: Ahmad Rizky" 
+                                   oninput="validateField('nama'); updateLivePreview();"
+                                   class="glass-input w-full px-4 py-2.5 rounded-xl text-sm placeholder-slate-500">
+                            <p id="err-nama" class="text-xs text-rose-400 mt-1 hidden flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Nama siswa wajib diisi!</p>
+                        </div>
+
+                        <!-- Grid Kelas & Jurusan -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Input Kelas -->
+                            <div>
+                                <label for="kelas" class="block text-sm font-medium text-slate-300 mb-1.5 flex items-center gap-2">
+                                    <i class="fa-solid fa-layer-group text-purple-400"></i> Tingkat Kelas <span class="text-rose-400">*</span>
+                                </label>
+                                <select id="kelas" name="kelas" onchange="validateField('kelas'); updateLivePreview();"
+                                        class="glass-input w-full px-4 py-2.5 rounded-xl text-sm focus:bg-slate-900">
+                                    <option value="" class="bg-slate-900 text-slate-400">-- Pilih Kelas --</option>
+                                    <option value="X (Sepuluh)" class="bg-slate-900 text-white">X (Sepuluh)</option>
+                                    <option value="XI (Sebelas)" class="bg-slate-900 text-white">XI (Sebelas)</option>
+                                    <option value="XII (Dua Belas)" class="bg-slate-900 text-white">XII (Dua Belas)</option>
+                                </select>
+                                <p id="err-kelas" class="text-xs text-rose-400 mt-1 hidden flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Silakan pilih kelas!</p>
+                            </div>
+
+                            <!-- Input Jurusan -->
+                            <div>
+                                <label for="jurusan" class="block text-sm font-medium text-slate-300 mb-1.5 flex items-center gap-2">
+                                    <i class="fa-solid fa-laptop-code text-purple-400"></i> Jurusan <span class="text-rose-400">*</span>
+                                </label>
+                                <select id="jurusan" name="jurusan" onchange="validateField('jurusan'); updateLivePreview();"
+                                        class="glass-input w-full px-4 py-2.5 rounded-xl text-sm focus:bg-slate-900">
+                                    <option value="" class="bg-slate-900 text-slate-400">-- Pilih Jurusan --</option>
+                                    <option value="RPL (Rekayasa Perangkat Lunak)" class="bg-slate-900 text-white">RPL</option>
+                                    <option value="TJKT (Teknik Jaringan Komputer)" class="bg-slate-900 text-white">TJKT</option>
+                                    <option value="DKV (Desain Komunikasi Visual)" class="bg-slate-900 text-white">DKV</option>
+                                    <option value="BCF (Broadcasting & Film)" class="bg-slate-900 text-white">BCF</option>
+                                </select>
+                                <p id="err-jurusan" class="text-xs text-rose-400 mt-1 hidden flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Silakan pilih jurusan!</p>
+                            </div>
+                        </div>
+
+                        <!-- Input Email & Telepon -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Input Email -->
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-slate-300 mb-1.5 flex items-center gap-2">
+                                    <i class="fa-regular fa-envelope text-purple-400"></i> Email Siswa <span class="text-rose-400">*</span>
+                                </label>
+                                <input type="email" id="email" name="email" placeholder="siswa@sekolah.sch.id" 
+                                       oninput="validateField('email'); updateLivePreview();"
+                                       class="glass-input w-full px-4 py-2.5 rounded-xl text-sm placeholder-slate-500">
+                                <p id="err-email" class="text-xs text-rose-400 mt-1 hidden flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Email valid wajib diisi!</p>
+                            </div>
+
+                            <!-- Input Telepon -->
+                            <div>
+                                <label for="telepon" class="block text-sm font-medium text-slate-300 mb-1.5 flex items-center gap-2">
+                                    <i class="fa-solid fa-phone text-purple-400"></i> Nomor HP / WA <span class="text-rose-400">*</span>
+                                </label>
+                                <input type="tel" id="telepon" name="telepon" placeholder="081234567890" 
+                                       oninput="validateField('telepon'); updateLivePreview();"
+                                       class="glass-input w-full px-4 py-2.5 rounded-xl text-sm placeholder-slate-500">
+                                <p id="err-telepon" class="text-xs text-rose-400 mt-1 hidden flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Nomor HP wajib diisi!</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="pt-4 flex flex-col sm:flex-row gap-3">
+                            <button type="submit" class="flex-1 py-3 px-6 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-600/30 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Kirim Data
+                            </button>
+                            <button type="button" onclick="resetStudentForm()" class="py-3 px-5 rounded-xl font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-left"></i> Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Preview / Kartu Identitas Panel -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Result Box (Tampil Setelah Submit) -->
+                    <div id="resultBox" class="hidden glass-card rounded-3xl p-6 border-2 border-emerald-500/30 bg-emerald-500/5 relative overflow-hidden animate-fade-in">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-emerald-500/20">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-emerald-300">Data Terkirim & Disanitasi!</h3>
+                                <p class="text-xs text-emerald-400/80">Aman dari serangan skrip XSS</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2.5 text-sm">
+                            <div class="p-3 rounded-xl bg-slate-900/40 border border-white/5">
+                                <span class="text-xs text-slate-400 block">Nama Lengkap:</span>
+                                <span id="resNama" class="font-semibold text-white text-base"></span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-3 rounded-xl bg-slate-900/40 border border-white/5">
+                                    <span class="text-xs text-slate-400 block">Kelas:</span>
+                                    <span id="resKelas" class="font-medium text-slate-200"></span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-900/40 border border-white/5">
+                                    <span class="text-xs text-slate-400 block">Jurusan:</span>
+                                    <span id="resJurusan" class="font-medium text-indigo-300"></span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-900/40 border border-white/5">
+                                <span class="text-xs text-slate-400 block">Kontak / Email:</span>
+                                <span id="resKontak" class="font-medium text-purple-300"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live ID Card Mockup -->
+                    <div class="glass-card rounded-3xl p-6 relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-eye text-indigo-400"></i> Kartu Identitas Siswa
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Live Digital Card</span>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="rounded-2xl p-5 bg-gradient-to-br from-indigo-900/80 via-slate-900 to-purple-950/90 border border-white/15 shadow-2xl relative overflow-hidden">
+                            <!-- Background Decor -->
+                            <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-purple-500/10 blur-xl"></div>
+                            
+                            <div class="flex items-start gap-4">
+                                <!-- Student Avatar -->
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 p-0.5 shadow-md flex-shrink-0">
+                                    <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center text-slate-200 text-2xl font-extrabold uppercase" id="previewAvatar">
+                                        ?
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-[10px] font-extrabold text-indigo-400 tracking-widest uppercase">KARTU PELAJAR DIGITAL</div>
+                                    <h4 class="text-base font-bold text-white truncate mt-0.5" id="previewNama">Belum Diisi</h4>
+                                    <p class="text-xs text-purple-300" id="previewKelas">Kelas: -</p>
+                                    <div class="mt-2 text-xs font-medium text-slate-300 bg-white/5 px-2.5 py-1 rounded-lg inline-block border border-white/10 truncate max-w-full" id="previewJurusan">
+                                        Jurusan: -
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+                                <div class="truncate pr-2">
+                                    <p id="previewEmail" class="truncate"><i class="fa-regular fa-envelope text-slate-500 mr-1"></i> -</p>
+                                    <p id="previewTelepon" class="truncate mt-0.5"><i class="fa-solid fa-phone text-slate-500 mr-1"></i> -</p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <!-- QR Code Mockup -->
+                                    <div class="w-10 h-10 bg-white p-1 rounded-md flex items-center justify-center text-slate-900">
+                                        <i class="fa-solid fa-qrcode text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PERTANYAAN EVALUASI INTERAKTIF (ACCORDION) -->
+        <div id="tab-eval" class="hidden transition-all duration-500">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-4xl mx-auto space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Pertanyaan & Jawaban Evaluasi</h2>
+                            <p class="text-xs text-slate-400">Klik pertanyaan di bawah untuk melihat penjelasan lengkap</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleAllAccordions()" class="text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-300 px-3 py-1.5 rounded-lg transition-all">
+                        Buka/Tutup Semua
+                    </button>
+                </div>
+
+                <!-- Accordion Q&A List -->
+                <div class="space-y-3">
+                    
+                    <!-- Item 1 -->
+                    <div class="rounded-2xl bg-slate-900/50 border border-white/10 overflow-hidden transition-all">
+                        <button onclick="toggleAccordion('acc-1')" class="w-full text-left p-4 sm:p-5 flex items-center justify-between font-semibold text-slate-200 hover:text-purple-300 transition-colors">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">1</span>
+                                Apa yang dimaksud dengan event handling?
+                            </span>
+                            <i id="icon-acc-1" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                        </button>
+                        <div id="acc-1" class="accordion-content px-5 pb-5">
+                            <p class="text-sm text-slate-300 leading-relaxed pl-10 border-l-2 border-purple-500/30">
+                                <strong>Event Handling</strong> adalah mekanisme dalam pemrograman untuk mendeteksi dan merespons aksi atau kejadian (*event*) yang dipicu oleh pengguna maupun sistem. Contoh kejadian tersebut meliputi penekanan tombol (*click*), pengiriman formulir (*submit*), pengetikan keyboard (*input/keyup*), atau pergerakan kursor mouse.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="rounded-2xl bg-slate-900/50 border border-white/10 overflow-hidden transition-all">
+                        <button onclick="toggleAccordion('acc-2')" class="w-full text-left p-4 sm:p-5 flex items-center justify-between font-semibold text-slate-200 hover:text-purple-300 transition-colors">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">2</span>
+                                Mengapa PHP tidak langsung menangani klik mouse di browser?
+                            </span>
+                            <i id="icon-acc-2" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                        </button>
+                        <div id="acc-2" class="accordion-content px-5 pb-5">
+                            <p class="text-sm text-slate-300 leading-relaxed pl-10 border-l-2 border-purple-500/30">
+                                Karena PHP merupakan bahasa pemrograman **Server-Side** (berjalan di web server), sedangkan aksi klik mouse terjadi di sisi **Client-Side** (browser pengguna). PHP hanya akan memproses data setelah browser mengirimkan permintaan HTTP ke server. Untuk menangani reaksi instan klik mouse di browser tanpa *reload*, kita menggunakan JavaScript.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="rounded-2xl bg-slate-900/50 border border-white/10 overflow-hidden transition-all">
+                        <button onclick="toggleAccordion('acc-3')" class="w-full text-left p-4 sm:p-5 flex items-center justify-between font-semibold text-slate-200 hover:text-purple-300 transition-colors">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">3</span>
+                                Apa fungsi atribut method="post"?
+                            </span>
+                            <i id="icon-acc-3" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                        </button>
+                        <div id="acc-3" class="accordion-content px-5 pb-5">
+                            <p class="text-sm text-slate-300 leading-relaxed pl-10 border-l-2 border-purple-500/30">
+                                Atribut <code class="text-purple-300 font-mono">method="post"</code> berfungsi untuk mengirimkan data formulir ke server secara tersembunyi melalui *HTTP Request Body* (tidak ditempel pada URL). Metode ini lebih aman untuk data sensitif, mendukung kapasitas payload yang besar, dan tidak memiliki batasan panjang URL.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="rounded-2xl bg-slate-900/50 border border-white/10 overflow-hidden transition-all">
+                        <button onclick="toggleAccordion('acc-4')" class="w-full text-left p-4 sm:p-5 flex items-center justify-between font-semibold text-slate-200 hover:text-purple-300 transition-colors">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">4</span>
+                                Apa perbedaan $_GET dan $_POST?
+                            </span>
+                            <i id="icon-acc-4" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                        </button>
+                        <div id="acc-4" class="accordion-content px-5 pb-5">
+                            <div class="pl-10 border-l-2 border-purple-500/30 text-sm space-y-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                                    <div class="p-3 rounded-xl bg-slate-800/60 border border-white/5">
+                                        <span class="font-bold text-amber-400 block mb-1">Metode GET</span>
+                                        <ul class="list-disc list-inside text-xs space-y-1 text-slate-300">
+                                            <li>Data terlihat di URL browser</li>
+                                            <li>Terbatas panjangnya (~2048 karakter)</li>
+                                            <li>Dapat di-bookmark / disimpan</li>
+                                            <li>Cocok untuk filter / pencarian</li>
+                                        </ul>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-slate-800/60 border border-white/5">
+                                        <span class="font-bold text-emerald-400 block mb-1">Metode POST</span>
+                                        <ul class="list-disc list-inside text-xs space-y-1 text-slate-300">
+                                            <li>Data tersembunyi di HTTP Body</li>
+                                            <li>Kapasitas data besar (termasuk file)</li>
+                                            <li>Tidak dapat di-bookmark</li>
+                                            <li>Cocok untuk formulir & login</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 5 -->
+                    <div class="rounded-2xl bg-slate-900/50 border border-white/10 overflow-hidden transition-all">
+                        <button onclick="toggleAccordion('acc-5')" class="w-full text-left p-4 sm:p-5 flex items-center justify-between font-semibold text-slate-200 hover:text-purple-300 transition-colors">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">5</span>
+                                Apa fungsi $_SERVER["REQUEST_METHOD"]?
+                            </span>
+                            <i id="icon-acc-5" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                        </button>
+                        <div id="acc-5" class="accordion-content px-5 pb-5">
+                            <p class="text-sm text-slate-300 leading-relaxed pl-10 border-l-2 border-purple-500/30">
+                                Berfungsi untuk mendeteksi jenis metode HTTP yang digunakan saat mengakses atau mengirim permintaan ke halaman web (misalnya <code class="text-purple-300 font-mono">GET</code> atau <code class="text-purple-300 font-mono">POST</code>). Hal ini berguna untuk memastikan kode pemrosesan formulir hanya dijalankan jika formulir telah dikirim.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 6 -->
+                    <div class="rounded-2xl bg-slate-900/50 border border-white/10 overflow-hidden transition-all">
+                        <button onclick="toggleAccordion('acc-6')" class="w-full text-left p-4 sm:p-5 flex items-center justify-between font-semibold text-slate-200 hover:text-purple-300 transition-colors">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">6</span>
+                                Mengapa data yang ditampilkan perlu diproses menggunakan htmlspecialchars()?
+                            </span>
+                            <i id="icon-acc-6" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                        </button>
+                        <div id="acc-6" class="accordion-content px-5 pb-5">
+                            <p class="text-sm text-slate-300 leading-relaxed pl-10 border-l-2 border-purple-500/30">
+                                Fungsi <code class="text-purple-300 font-mono">htmlspecialchars()</code> digunakan untuk mengubah karakter khusus HTML (seperti <code class="text-purple-300 font-mono">&lt;</code>, <code class="text-purple-300 font-mono">&gt;</code>, <code class="text-purple-300 font-mono">&amp;</code>) menjadi entitas teks aman. Ini bertujuan mencegah serangan celah keamanan **Cross-Site Scripting (XSS)** agar skrip jahat yang dimasukkan pengguna tidak dieksekusi oleh browser.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 border border-purple-500/30 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+            <span id="toastMsg" class="text-sm font-medium">Pesan Toast</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 border-t border-white/5 text-xs text-slate-500 relative z-10">
+        <p>© Latihan Praktik Siswa — Modul Web Client-Side Event Handling</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Tab Navigation Logic
+        function switchTab(tab) {
+            const formTab = document.getElementById('tab-form');
+            const evalTab = document.getElementById('tab-eval');
+            const formBtn = document.getElementById('tab-form-btn');
+            const evalBtn = document.getElementById('tab-eval-btn');
+
+            if (tab === 'form') {
+                formTab.classList.remove('hidden');
+                evalTab.classList.add('hidden');
+
+                formBtn.className = "px-6 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 flex items-center gap-2";
+                evalBtn.className = "px-6 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2";
+            } else {
+                formTab.classList.add('hidden');
+                evalTab.classList.remove('hidden');
+
+                evalBtn.className = "px-6 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 flex items-center gap-2";
+                formBtn.className = "px-6 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2";
+            }
+        }
+
+        // Helper: Sanitize Text string against XSS
+        function sanitizeInput(str) {
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
+
+        // Live ID Card Preview Function
+        function updateLivePreview() {
+            const nama = document.getElementById('nama').value.trim();
+            const kelas = document.getElementById('kelas').value;
+            const jurusan = document.getElementById('jurusan').value;
+            const email = document.getElementById('email').value.trim();
+            const telepon = document.getElementById('telepon').value.trim();
+
+            const previewNama = document.getElementById('previewNama');
+            const previewKelas = document.getElementById('previewKelas');
+            const previewJurusan = document.getElementById('previewJurusan');
+            const previewEmail = document.getElementById('previewEmail');
+            const previewTelepon = document.getElementById('previewTelepon');
+            const previewAvatar = document.getElementById('previewAvatar');
+
+            // Set Values using textContent for Safety
+            previewNama.textContent = nama !== "" ? nama : "Belum Diisi";
+            previewAvatar.textContent = nama !== "" ? nama.charAt(0).toUpperCase() : "?";
+            previewKelas.textContent = kelas !== "" ? "Kelas: " + kelas : "Kelas: -";
+            previewJurusan.textContent = jurusan !== "" ? "Jurusan: " + jurusan : "Jurusan: -";
+            
+            previewEmail.innerHTML = '<i class="fa-regular fa-envelope text-slate-500 mr-1"></i> ' + (email !== "" ? sanitizeInput(email) : "-");
+            previewTelepon.innerHTML = '<i class="fa-solid fa-phone text-slate-500 mr-1"></i> ' + (telepon !== "" ? sanitizeInput(telepon) : "-");
+        }
+
+        // Single Field Validation
+        function validateField(fieldId) {
+            const input = document.getElementById(fieldId);
+            const errEl = document.getElementById('err-' + fieldId);
+            let isValid = true;
+
+            if (fieldId === 'email') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                isValid = emailRegex.test(input.value.trim());
+            } else {
+                isValid = input.value.trim() !== "";
+            }
+
+            if (!isValid) {
+                input.classList.add('border-rose-500');
+                errEl.classList.remove('hidden');
+            } else {
+                input.classList.remove('border-rose-500');
+                errEl.classList.add('hidden');
+            }
+
+            return isValid;
+        }
+
+        // Form Submit Handler
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const isNamaValid = validateField('nama');
+            const isKelasValid = validateField('kelas');
+            const isJurusanValid = validateField('jurusan');
+            const isEmailValid = validateField('email');
+            const isTeleponValid = validateField('telepon');
+
+            if (isNamaValid && isKelasValid && isJurusanValid && isEmailValid && isTeleponValid) {
+                const nama = document.getElementById('nama').value.trim();
+                const kelas = document.getElementById('kelas').value;
+                const jurusan = document.getElementById('jurusan').value;
+                const email = document.getElementById('email').value.trim();
+                const telepon = document.getElementById('telepon').value.trim();
+
+                // Safely render using textContent
+                document.getElementById('resNama').textContent = nama;
+                document.getElementById('resKelas').textContent = kelas;
+                document.getElementById('resJurusan').textContent = jurusan;
+                document.getElementById('resKontak').textContent = email + ' | ' + telepon;
+
+                const resultBox = document.getElementById('resultBox');
+                resultBox.classList.remove('hidden');
+                resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                showToast('Data identitas siswa berhasil diproses!', 'success');
+            } else {
+                showToast('Harap lengkapi semua kolom dengan benar!', 'error');
+            }
+        }
+
+        // Reset Form Logic
+        function resetStudentForm() {
+            document.getElementById('studentForm').reset();
+            
+            // Hide error elements
+            ['nama', 'kelas', 'jurusan', 'email', 'telepon'].forEach(id => {
+                document.getElementById('err-' + id).classList.add('hidden');
+                document.getElementById(id).classList.remove('border-rose-500');
+            });
+
+            document.getElementById('resultBox').classList.add('hidden');
+            updateLivePreview();
+            showToast('Formulir berhasil dikosongkan.', 'info');
+        }
+
+        // Toast Notification System
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = msg;
+
+            if (type === 'success') {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+            } else if (type === 'error') {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-lg";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-info text-indigo-400 text-lg";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Accordion Interactive Function
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+
+            if (content.classList.contains('active')) {
+                content.style.maxHeight = null;
+                content.classList.remove('active');
+                icon.style.transform = "rotate(0deg)";
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                content.classList.add('active');
+                icon.style.transform = "rotate(180deg)";
+            }
+        }
+
+        // Toggle All Accordions
+        let allOpen = false;
+        function toggleAllAccordions() {
+            allOpen = !allOpen;
+            for (let i = 1; i <= 6; i++) {
+                const content = document.getElementById('acc-' + i);
+                const icon = document.getElementById('icon-acc-' + i);
+                if (allOpen) {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    content.classList.add('active');
+                    icon.style.transform = "rotate(180deg)";
+                } else {
+                    content.style.maxHeight = null;
+                    content.classList.remove('active');
+                    icon.style.transform = "rotate(0deg)";
+                }
+            }
+        }
+
+        // Initialize Live Preview
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLivePreview();
+        });
+    </script>
+</body>
+</html>
